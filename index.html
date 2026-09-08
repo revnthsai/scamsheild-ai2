@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScamShield AI — Live Scam Detection Dashboard</title>
+  <meta name="description" content="Scan a QR code or listen to a call in real time and get an on-the-spot risk verdict, powered by transparent, explainable heuristics." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        ScamShield AI
+      </div>
+      <div class="status-pill" id="topStatusPill">
+        <span class="status-dot"></span>
+        <span id="topStatusLabel">Starting up</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-beam" aria-hidden="true"></div>
+      <div class="container">
+        <div class="hero-heading">
+          <span class="eyebrow">Live simulator</span>
+          <h1>Point your camera or your voice at a scam. Watch it get caught.</h1>
+          <p>Scan a QR code or narrate a call in your own words below. Every check runs through the same transparent rules a security analyst would use — no black box, no guessing.</p>
+        </div>
+
+        <div class="lanes">
+          <!-- QR / Link lane -->
+          <div class="lane glass">
+            <div class="lane-header">
+              <div class="lane-title">
+                <span class="lane-icon" aria-hidden="true">▦</span>
+                QR &amp; link scanner
+              </div>
+              <div class="verdict" id="qrVerdict" data-level="idle">
+                <span class="verdict-dot"></span>
+                <span class="verdict-label">Idle</span>
+              </div>
+            </div>
+
+            <div class="lane-body">
+              <div class="scan-surface">
+                <video id="qrVideo" muted playsinline></video>
+                <div class="reticle" id="qrReticle" aria-hidden="true"></div>
+                <div class="scan-placeholder" id="qrPlaceholder">
+                  Start the camera, upload a QR image, or paste a link below to check it.
+                </div>
+              </div>
+
+              <div class="lane-controls">
+                <button class="btn btn-gold" id="qrStartBtn" type="button">Start camera</button>
+                <button class="btn btn-outline" id="qrStopBtn" type="button" disabled>Stop</button>
+                <label class="btn btn-outline" for="qrUploadInput" style="cursor:pointer;">
+                  Upload image
+                  <input type="file" id="qrUploadInput" accept="image/*" hidden />
+                </label>
+              </div>
+
+              <div class="lane-controls">
+                <input
+                  type="text"
+                  id="qrManualInput"
+                  placeholder="…or paste a link to check it directly"
+                  style="flex:1; min-width:180px; padding:11px 14px; border-radius:10px; border:1px solid var(--hairline); background:rgba(6,10,18,0.5); color:var(--paper); font-size:0.88rem;"
+                />
+                <button class="btn btn-outline" id="qrManualBtn" type="button">Check link</button>
+              </div>
+
+              <div class="risk-score" id="qrScore">—<small> / 100</small></div>
+              <ul class="findings-list is-empty" id="qrFindings">
+                <li>No link checked yet.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Voice / call lane -->
+          <div class="lane glass">
+            <div class="lane-header">
+              <div class="lane-title">
+                <span class="lane-icon" aria-hidden="true">◐</span>
+                Call &amp; voice analyzer
+              </div>
+              <div class="verdict" id="voiceVerdict" data-level="idle">
+                <span class="verdict-dot"></span>
+                <span class="verdict-label">Idle</span>
+              </div>
+            </div>
+
+            <div class="lane-body">
+              <canvas class="waveform" id="waveformCanvas"></canvas>
+              <div class="transcript-box" id="transcriptBox">Start listening, or paste a transcript below.</div>
+
+              <div class="lane-controls">
+                <button class="btn btn-gold" id="voiceStartBtn" type="button">Start listening</button>
+                <button class="btn btn-outline" id="voiceStopBtn" type="button" disabled>Stop</button>
+              </div>
+
+              <div class="lane-controls">
+                <input
+                  type="text"
+                  id="voiceManualInput"
+                  placeholder="…or paste a call transcript to check it directly"
+                  style="flex:1; min-width:180px; padding:11px 14px; border-radius:10px; border:1px solid var(--hairline); background:rgba(6,10,18,0.5); color:var(--paper); font-size:0.88rem;"
+                />
+                <button class="btn btn-outline" id="voiceManualBtn" type="button">Analyze</button>
+              </div>
+
+              <div class="risk-score" id="voiceScore">—<small> / 100</small></div>
+              <ul class="findings-list is-empty" id="voiceFindings">
+                <li>No transcript analyzed yet.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="log-section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Threat signal log</h2>
+          <button class="btn btn-outline" id="clearLogBtn" type="button">Clear log</button>
+        </div>
+        <div class="glass log-panel">
+          <ul class="log-list" id="logList"></ul>
+          <div class="log-empty" id="logEmpty">Nothing checked yet this session — results from both lanes above will land here.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-section">
+      <div class="container">
+        <div class="section-head">
+          <h2>How the scoring works</h2>
+        </div>
+        <div class="how-grid">
+          <div class="glass how-card">
+            <span class="how-step">01</span>
+            <h3>Capture, on-device</h3>
+            <p>The camera decodes QR text and the microphone is transcribed locally in your browser. Nothing is recorded or stored unless you choose to check it.</p>
+          </div>
+          <div class="glass how-card">
+            <span class="how-step">02</span>
+            <h3>Score against known patterns</h3>
+            <p>Decoded text is run through a transparent rules engine: link structure, brand impersonation, and payment or urgency language pulled from real scam scripts.</p>
+          </div>
+          <div class="glass how-card">
+            <span class="how-step">03</span>
+            <h3>Plain-language verdict</h3>
+            <p>You get a 0–100 risk score and the exact reasons behind it — never just a red flag with no explanation.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>ScamShield AI — a heuristic demo, not a substitute for your bank's or carrier's official fraud tools.</span>
+      <div class="api-indicator">
+        <span class="status-dot" id="apiDot" data-state="checking"></span>
+        <span id="apiLabel">Checking backend…</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js" defer></script>
+  <script src="js/qrScanner.js" defer></script>
+  <script src="js/audioAnalyzer.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>

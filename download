@@ -1,0 +1,33 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# --- Environment secrets ---
+.env
+*.env.local
+backend/.env
+
+# --- Node / frontend tooling (if added later) ---
+node_modules/
+dist/
+.parcel-cache/
+
+# --- Vercel ---
+.vercel/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Build output ---
+*.zip
+build/
